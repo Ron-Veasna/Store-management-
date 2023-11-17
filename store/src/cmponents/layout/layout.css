@@ -1,0 +1,14 @@
+.demo-logo-vertical{
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    background-color: white;
+    margin: 10px;
+    display: flex;
+    font-size: 10px;
+    align-items: center;
+    justify-content: center;
+}
+.kk{
+    background-color: ;
+}
