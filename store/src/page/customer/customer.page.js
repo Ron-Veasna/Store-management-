@@ -4,48 +4,23 @@ import { RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Space } from 'antd';
 import { useState, useEffect } from 'react';
 import axios from "axios"
+import { request } from "../../util/Api";
 import Table from 'react-bootstrap/Table';
 const url = 'https://static.animecorner.me/2022/07/anya-diary.png';
 const url2 = 'https://fictionhorizon.com/wp-content/uploads/2022/07/monkey.png';
-
 const Customer = () => {
   const [List, setList] = useState([])
-  useEffect(()=>{
-    getlist(); //call function getlist
-  },[])
-  // create a function fetch data from api
-  const getlist = () =>{
-    axios({
-      url : "http://localhost:8080/api/customer/getlist",
-      method : "GET",
-      headers: {
-        'Content-Type': 'application/json',
-        // "Access-Control-Allow-Origin": "*",
-        'Accept': 'application/json, text/plain, */*',
-        "Access-Control-Allow-Origin": "http://localhost:3000",
-        "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS",
-        "Access-Control-Allow-Headers": "x-access-token, Origin, X-Requested-With, Content-Type, Accept"
-      },
-      //body: JSON.stringify(getlist),
-      //data : {} // json body params
-    }).then(res=>{
-      // setList(res.data.list_customer)
-      console.log("res", res);
-    }).catch(err=>{
-      console.log(err)
-    })
-  }
-  const onDelete = (item)=>{
-    axios({
-      url : "http://localhost:8080/api/customer/delete",
-      method : "DELETE",
-      //data : {} // json body params
-    }).then(res=>{
-      getlist()
-    }).catch(err=>{
-      console.log(err)
-    })
-  }
+  const getlist = async () =>{
+    const response = await fetch('http://localhost:3000/api/customer/getlist')
+    const data = await response.json();
+    setList(data.list_customer)
+    console.log(data);
+  }//https://www.googleapis.com/books/v1/volumes?q=flowers
+  useEffect(() => {
+
+    getlist();
+
+  }, [])
 return (
   <>
   <h1>Customer Page <span style={{"color":"blue"}} >Management</span></h1>
@@ -76,6 +51,7 @@ return (
     <thead>
       <tr>
         <th className='td-left'>No</th>
+        {/* <th className='td-left'>Customer ID</th> */}
         <th className='td-left'>FirstName</th>
         <th className='td-left'>LastName</th>
         <th className='td-left'>Gender</th>
@@ -90,18 +66,19 @@ return (
       {
         List.map((item,index)=>{
           return (
-            <tr key={index}>
-              <td className='td-left'>{index+1}</td>
-              <td className='td-left'>{item.firstname}</td>
-              <td className='td-left'>{item.lastname}</td>
-              <td className='td-left'>{item.gender}</td>
-              <td className='td-left'>{item.dob}</td>
-              <td className='td-left'>{item.phone}</td>
-              <td className='td-left'>{item.email}</td>
-              <td className='td-left'>{item.is_active}</td>
+            <tr key={index} >
+            <td>{index+1}</td>
+            {/* <td>{item.cus_id}</td> */}
+            <td>{item.firstname}</td>
+            <td>{item.lastname}</td>
+            <td>{item.gender}</td>
+            <td>{item.dob}</td>
+            <td>{item.phone}</td>
+            <td>{item.email}</td>
+            <td>{item.is_active}</td>
               <td>
                 <button>Edit</button>
-                <button onClick={()=>onDelete(item)}>Delete</button>
+                <button>Delete</button>
               </td>
             </tr>
           )
