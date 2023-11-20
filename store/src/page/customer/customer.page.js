@@ -11,7 +11,7 @@ const url2 = 'https://fictionhorizon.com/wp-content/uploads/2022/07/monkey.png';
 const Customer = () => {
   const [List, setList] = useState([])
   const getlist = async () =>{
-    const response = await fetch('http://localhost:3000/api/customer/getlist')
+    const response = await fetch('http://localhost:8080/api/customer/getlist')
     const data = await response.json();
     setList(data.list_customer)
     console.log(data);
