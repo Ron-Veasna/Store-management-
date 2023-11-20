@@ -23,7 +23,7 @@ const create = (req,res)=>{
         })
         return false
     }
-    var sqlinsert = "INSERT INTO customer( firstname, lastname, gender, dob, phone, email, is_active) VALUES (?,?,?,?,?,?,?)"
+    var sqlinsert = "INSERT INTO customer(firstname, lastname, gender, dob, phone, email, is_active) VALUES (?,?,?,?,?,?,?)"
     db.query(sqlinsert,[body.firstname,body.lastname,body.gender,body.dob,body.phone,body.email,body.is_active],(error,result)=>{
         if(error){
             res.json({

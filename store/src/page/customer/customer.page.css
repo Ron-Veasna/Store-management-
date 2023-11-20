@@ -1,0 +1,17 @@
+.l{
+    padding-bottom:5px;
+    border-bottom:2px solid gray;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.search{
+    margin-top: 10px;
+    margin-left: 20px;
+    padding-right: 20px;
+}
+.date{
+    margin-top: 10px;
+    margin-left: 10px;
+}
