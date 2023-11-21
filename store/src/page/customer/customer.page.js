@@ -1,17 +1,44 @@
 import React from 'react'
 import "./customer.page.css"
 import axios from 'axios';
-import { Button, DatePicker, Input, Popconfirm } from 'antd';
+import { 
+  Button, 
+  DatePicker, 
+  Input, 
+  Modal, 
+  Popconfirm,
+  ConfigProvider,
+  Select,
+  Radio,
+ } from 'antd';
+ import dayjs from "dayjs";
+// import 'dayjs/locale/km';
+// import locale from 'antd/es/date-picker/locale/km_KH';
+import "dayjs/locale/en";
+import locale from "antd/locale/en_US";
 import { RobotOutlined, UserOutlined, SaveFilled} from '@ant-design/icons';
 import { Avatar, Space } from 'antd';
-import {DeleteFilled, EditFilled, QuestionCircleOutlined , FilterFilled} from "@ant-design/icons"
+import {
+  DeleteFilled,
+  EditFilled, 
+  QuestionCircleOutlined , 
+  FilterFilled} from "@ant-design/icons"
 import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 const url = 'https://static.animecorner.me/2022/07/anya-diary.png';
 const url2 = 'https://fictionhorizon.com/wp-content/uploads/2022/07/monkey.png';
-
+const { Option } = Select;
 const Customer = () => {
   const [List, setList] = useState([])
+  const [visibleModal, setVisibleModal] = useState(false)
+  const [firstname, setFirstname] = useState("")
+  const [lastname, setLastname] = useState("")
+  const [gender, setGender] = useState("")
+  const [dob, setDob] = useState(dayjs())
+  const [phone, setPhone] = useState("")
+  const [email, setEmail] = useState("")
+  const [is_active, setActive] = useState(1)
+  const [cus_id, setCusid] = useState(null)
   const getlist = async () =>{
     const response = await fetch('http://localhost:8080/api/customer/getlist')
     const data = await response.json();
@@ -33,6 +60,78 @@ const Customer = () => {
       console.log(err)
     })
   }
+  const handlesubmit =()=>{
+    if(cus_id == null){
+    axios({
+      url : "http://localhost:8080/api/customer/create",
+      method : "post",
+      data :{
+        "firstname":firstname,
+        "lastname":lastname,
+        "gender":gender,
+        "dob":dayjs(dob),
+        "phone":phone,
+        "email":email,
+        "is_active":is_active,
+      }
+    }).then(res =>{
+      setVisibleModal(false)
+      getlist()
+    }).catch(err=>{
+      console.log(err);
+    })
+}else{
+  axios({
+    url : "http://localhost:8080/api/customer/update",
+    method : "put",
+    data :{
+      "cus_id": cus_id,
+      "firstname":firstname,
+      "lastname":lastname,
+      "gender":gender,
+      "dob":dayjs(dob),
+      "phone":phone,
+      "email":email,
+      "is_active":is_active,
+    }
+  }).then(res =>{
+    setVisibleModal(false)
+    getlist()
+  }).catch(err=>{
+    console.log(err);
+  })
+}
+}
+  const handlecloseModal =() =>{
+    setVisibleModal(false)
+    clearForm();
+    setCusid(null)
+  }
+  const clearForm = () => {
+    setFirstname("");
+    setLastname("");
+    setGender("1");
+    setDob(dayjs());
+    setPhone("");
+    setEmail("");
+    setActive(1);
+    setCusid(null);
+  };
+  const handleOpenModal =()=>{
+    setVisibleModal(true)
+  }
+  const handleEdit = (item,index)=>{
+    setVisibleModal(true)
+
+    setFirstname(item.firstname)
+    setLastname(item.lastname)
+    setGender(item.gender+"")
+    setDob(item.dob+"")
+    setPhone(item.phone)
+    setEmail(item.email)
+    setActive(item.is_active)
+    setCusid(item.cus_id)
+  }
 return (
   <>
  <div className='l'>
@@ -42,11 +141,11 @@ return (
   <Input.Search className='search' placeholder='Search'/>
   <DatePicker className='date'  />
   <DatePicker className='date'  />
-  <Button type='primary' className='date'><FilterFilled/></Button>
+  <Button type='primary' className='date'><FilterFilled/>Filter</Button>
   </Space>
   </div>
-  <Button style={{"background-color":"rgb(14, 216, 14)","color":"white","border":" 1px solid black"}}>
-  <SaveFilled/>Add Customer
+  <Button onClick={handleOpenModal} style={{"background-color":"rgb(14, 216, 14)","color":"white","border":" 1px solid black"}}>
+  <SaveFilled/>Create Customer
   </Button>
  </div>
   <Space size={16} wrap style={{"margin-bottom":19}}>
@@ -103,19 +202,10 @@ return (
               <td>{item.email}</td>
               <td>{item.is_active}</td>
               <td style={{"padding":5,"display":"flex", "gap":20,"justify-content":"center"}}>
-              <Popconfirm
-                  placement="topRight"
-                  title={"Edit Customer"}
-                  description={"Are you sure Edit this Customer"}
-                  icon={<QuestionCircleOutlined style={{ color: 'blue' }} />}
-                  // onConfirm={onConfirmEdit(item.cus_id)}
-                  okText="Edit"
-                  cancelText="No"
-                >
-                <Button  size='small' type='primary'>
+                <Button  size='small' type='primary'
+                onClick={()=>handleEdit(item,index)}>
                 <EditFilled/>Edit
                 </Button>
-                </Popconfirm>
                 <Popconfirm
                   placement="topRight"
                   title={"Delete Customer"}
@@ -137,6 +227,81 @@ return (
       }
     </tbody>
   </Table>
+  <Modal
+    open={visibleModal}
+    title={cus_id == null ? "New Customer":"Update Customer"}
+    onCancel={handlecloseModal}
+    onOk={()=>{}}
+    footer={null}
+  > <br/>
+  <div className='input'>
+    <Input
+      value={firstname}
+      placeholder="First-Name"
+      onChange={(event)=>{
+        setFirstname(event.target.value)
+      }}
+     />
+     <Input
+      value={lastname}
+      placeholder="Last-Name"
+      onChange={(event)=>{
+        setLastname(event.target.value)
+      }}
+     />
+      <Select
+              value={gender}
+              defaultValue={"1"}
+              style={{ width: "100%" }}
+              onChange={(value) => {
+                setGender(value);
+              }}
+            >
+            <Option value={""}>Please Gender</Option>
+              <Option value={"1"}>Male</Option>
+              <Option value={"0"}>Female</Option>
+            </Select>
+            <ConfigProvider locale={locale}>
+              <DatePicker
+                style={{ width: "100%" , "margin":"20px 0px"}}
+                placement="bottomLeft"
+                placeholder="Date of birth"
+                format={"DD/MM/YYYY"} // user client
+                value={dayjs(dob, "YYYY-MM-DD")} // for date picker
+                onChange={(date_js, dateString) => {
+                  setDob(date_js);
+                }}
+              />
+            </ConfigProvider>
+     <Input
+      value={phone}
+      placeholder="Phone Number"
+      onChange={(event)=>{
+        setPhone(event.target.value)
+      }}
+     />
+     <Input
+      value={email}
+      placeholder="Your Email"
+      onChange={(event)=>{
+        setEmail(event.target.value)
+      }}
+     />
+      <Radio.Group
+              value={is_active}
+              onChange={(event) => {
+                setActive(event.target.value);
+              }}
+            >
+              <Radio value={1}>Actived</Radio>
+              <Radio value={0}>Disabled</Radio>
+            </Radio.Group>
+    </div> <br/>
+    <Space style={{"display":"flex", "justifyContent":"right"}}>
+      <Button danger={true} onClick={handlecloseModal}>Cancel</Button>
+      <Button onClick={handlesubmit} type='primary'>{cus_id == null ? "Save":"Update"}</Button>
+    </Space>
+  </Modal>
 </>
   )
     }
