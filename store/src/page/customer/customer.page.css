@@ -19,3 +19,46 @@
     margin-bottom: 20px;
     padding: 5px;
 }
+.green{
+    background-color: rgb(4, 255, 4);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px;
+}
+.green:hover{
+    color: black;
+}
+.red{
+    background-color: rgb(255, 4, 4);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px;
+}
+.red:hover{
+    color: black;
+}
+.ttbb{
+    text-align: center;
+}
+.pink{
+    background-color: rgb(255, 4, 234);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px;
+}
+.pink:hover{
+    color: black;
+}
+.blue{
+    background-color: rgb(4, 205, 255);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px;
+}
+.blue:hover{
+    color: black;
+}

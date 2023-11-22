@@ -1,6 +1,7 @@
 import React from 'react'
 import "./customer.page.css"
 import axios from 'axios';
+import { request } from '../../util/Api';
 import { 
   Button, 
   DatePicker, 
@@ -10,6 +11,7 @@ import {
   ConfigProvider,
   Select,
   Radio,
+  Spin,
  } from 'antd';
  import dayjs from "dayjs";
 // import 'dayjs/locale/km';
@@ -24,7 +26,7 @@ import {
   QuestionCircleOutlined , 
   FilterFilled} from "@ant-design/icons"
 import { useState, useEffect } from 'react';
-import Table from 'react-bootstrap/Table';
+import { message, Table } from 'antd/lib';
 const url = 'https://static.animecorner.me/2022/07/anya-diary.png';
 const url2 = 'https://fictionhorizon.com/wp-content/uploads/2022/07/monkey.png';
 const { Option } = Select;
@@ -33,39 +35,61 @@ const Customer = () => {
   const [visibleModal, setVisibleModal] = useState(false)
   const [firstname, setFirstname] = useState("")
   const [lastname, setLastname] = useState("")
-  const [gender, setGender] = useState("")
+  const [gender, setGender] = useState("Please Select Gender")
   const [dob, setDob] = useState(dayjs())
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [is_active, setActive] = useState(1)
   const [cus_id, setCusid] = useState(null)
-  const getlist = async () =>{
-    const response = await fetch('http://localhost:8080/api/customer/getlist')
-    const data = await response.json();
-    setList(data.list_customer)
-    console.log(data);
-  }//https://www.googleapis.com/books/v1/volumes?q=flowers
+  const [loading, setLoading] = useState(false)
+  const getlist = () =>{
+    setLoading(true)
+    request("get","customer/getlist").then(res=>{
+      setList(res.data.list_customer)
+      setTimeout(() => {
+        setLoading(false) // fast sever jeg ot see loading  
+      }, 300);
+      message.success("Connecting Veasna Server")
+      console.log(res)
+    }).catch(err=>{
+      console.log(err)
+    })
+  }
+  // const getlist = async () =>{
+  //   const response = await fetch('http://localhost:8080/api/customer/getlist')
+  //   const data = await response.json();
+  //   setList(data.list_customer)
+  //   console.log(data);
+  // }//https://www.googleapis.com/books/v1/volumes?q=flowers
   useEffect(() => {
 
     getlist();
 
   }, [])
   const onConfirmDelete = (id) => {
-    axios({
-      url : "http://localhost:8080/api/customer/delete/"+id,
-      method : "DELETE",
-    }).then(res=>{
+    // axios({
+    //   url : "http://localhost:8080/api/customer/delete/"+id,
+    //   method : "DELETE",
+    // }).then(res=>{
+    //   getlist()
+    // }).catch(err=>{
+    //   console.log(err)
+    // })
+    setLoading(true)
+    request("delete","customer/delete/"+id).then(res=>{
       getlist()
+      setTimeout(() => {
+        setLoading(false) // fast sever jeg ot see loading  
+      }, 300);
+      message.success(res.data.message)
     }).catch(err=>{
       console.log(err)
     })
   }
   const handlesubmit =()=>{
     if(cus_id == null){
-    axios({
-      url : "http://localhost:8080/api/customer/create",
-      method : "post",
-      data :{
+      setLoading(true)
+      request("post","customer/create",{
         "firstname":firstname,
         "lastname":lastname,
         "gender":gender,
@@ -73,30 +97,62 @@ const Customer = () => {
         "phone":phone,
         "email":email,
         "is_active":is_active,
-      }
-    }).then(res =>{
+    //   })
+    // axios({
+    //   url : "http://localhost:8080/api/customer/create",
+    //   method : "post",
+    //   data :{
+    //     "firstname":firstname,
+    //     "lastname":lastname,
+    //     "gender":gender,
+    //     "dob":dayjs(dob),
+    //     "phone":phone,
+    //     "email":email,
+    //     "is_active":is_active,
+    //   }
+     }).then(res =>{
       setVisibleModal(false)
+      clearForm()
       getlist()
+      setTimeout(() => {
+        setLoading(false) // fast sever jeg ot see loading  
+      }, 300);
+      message.success(res.data.message)
     }).catch(err=>{
       console.log(err);
     })
 }else{
-  axios({
-    url : "http://localhost:8080/api/customer/update",
-    method : "put",
-    data :{
-      "cus_id": cus_id,
-      "firstname":firstname,
-      "lastname":lastname,
-      "gender":gender,
-      "dob":dayjs(dob),
-      "phone":phone,
-      "email":email,
-      "is_active":is_active,
-    }
+  setLoading(true)
+  request("put","customer/update",{
+       "cus_id": cus_id,
+       "firstname":firstname,
+       "lastname":lastname,
+       "gender":gender,
+       "dob":dayjs(dob),
+       "phone":phone,
+       "email":email,
+       "is_active":is_active,
+  // axios({
+  //   url : "http://localhost:8080/api/customer/update",
+  //   method : "put",
+  //   data :{
+  //     "cus_id": cus_id,
+  //     "firstname":firstname,
+  //     "lastname":lastname,
+  //     "gender":gender,
+  //     "dob":dayjs(dob),
+  //     "phone":phone,
+  //     "email":email,
+  //     "is_active":is_active,
+  //   }
   }).then(res =>{
     setVisibleModal(false)
     getlist()
+    clearForm();
+    message.success(res.data.message)
+    setTimeout(() => {
+      setLoading(false) // fast sever jeg ot see loading  
+    }, 300);
   }).catch(err=>{
     console.log(err);
   })
@@ -134,6 +190,7 @@ const Customer = () => {
   }
 return (
   <>
+  <Spin spinning={loading}>
  <div className='l'>
   <div>
   <Space>
@@ -171,39 +228,56 @@ return (
       icon={<RobotOutlined/>}
     />
   </Space>
-  
-  <Table border={1} style={{width:"100%", "backgroundColor":"white","padding":5}}>
-    <thead>
-      <tr style={{"backgroundColor":"black", "color":"white"}}>
-        <th className='td-left'>No</th>
-        {/* <th className='td-left'>Customer ID</th> */}
-        <th className='td-left'>FirstName</th>
-        <th className='td-left'>LastName</th>
-        <th className='td-left'>Gender</th>
-        <th className='td-left'>Date of Birth</th>
-        <th className='td-left'>Phone</th>
-        <th className='td-left'>Email</th>
-        <th className='td-left'>Is_Active</th>
-        <th className='td-left'>Action</th>
-      </tr>
-    </thead>
-    <tbody>
+  <Table
+    columns={[
       {
-        List.map((item,index)=>{
-          return (
-            <tr key={index} >
-              <td>{index+1}</td>
-              {/* <td>{item.cus_id}</td> */}
-              <td>{item.firstname}</td>
-              <td>{item.lastname}</td>
-              <td>{item.gender}</td>
-              <td>{item.dob}</td>
-              <td>{item.phone}</td>
-              <td>{item.email}</td>
-              <td>{item.is_active}</td>
-              <td style={{"padding":5,"display":"flex", "gap":20,"justify-content":"center"}}>
-                <Button  size='small' type='primary'
-                onClick={()=>handleEdit(item,index)}>
+        title : "No",
+        render : (value, record, index)=>(index+1)
+      },
+      {
+        title : "FirstName",
+        dataIndex : "firstname",
+        key : "firstname",
+      },
+      {
+        title : "LastName",
+        dataIndex : "lastname",
+        key : "lastname",
+      },
+      {
+        title : "Gender",
+        dataIndex : "gender",
+        key : "gender",
+        render : (value) => (value === 1 ? <button size='small' className='blue' >Male</button>:<button size='small' className='pink'>Female</button>)
+      },
+      {
+        title : "Date of Birth",
+        dataIndex : "dob",
+        key : "dob",
+        render : (value) => (dayjs(value).format("DD/MM/YYYY"))
+      },
+      {
+        title : "Phone",
+        dataIndex : "phone",
+        key : "phone",
+      },
+      {
+        title : "Email",
+        dataIndex : "email",
+        key : "email",
+      },
+      {
+        title : "Is_Active",
+        dataIndex : "is_active",
+        key : "is_active",
+        render : (value) => (value === 1 ? <button size='small' className='green' >Active</button>:<button size='small' className='red'>Disable</button>)
+      },
+      {
+        title : "Action",
+        render : (record,index) => (
+          <Space>
+            <Button  size='small' type='primary'
+                onClick={()=>handleEdit(record,index)}>
                 <EditFilled/>Edit
                 </Button>
                 <Popconfirm
@@ -211,7 +285,7 @@ return (
                   title={"Delete Customer"}
                   description={"Are you sure Delete this Customer"}
                   icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                  onConfirm={()=>onConfirmDelete(item.cus_id)}
+                  onConfirm={()=>onConfirmDelete(record.cus_id)}
                   okText="Delete"
                   cancelText="No"
                 >
@@ -220,13 +294,12 @@ return (
                 <DeleteFilled/>Delete
                 </Button>
                 </Popconfirm>
-              </td>
-            </tr>
-          )
-        })
-      }
-    </tbody>
-  </Table>
+          </Space>
+        )
+      },
+    ]}
+    dataSource={List}
+  />
   <Modal
     open={visibleModal}
     title={cus_id == null ? "New Customer":"Update Customer"}
@@ -257,7 +330,6 @@ return (
                 setGender(value);
               }}
             >
-            <Option value={""}>Please Gender</Option>
               <Option value={"1"}>Male</Option>
               <Option value={"0"}>Female</Option>
             </Select>
@@ -302,6 +374,7 @@ return (
       <Button onClick={handlesubmit} type='primary'>{cus_id == null ? "Save":"Update"}</Button>
     </Space>
   </Modal>
+  </Spin>
 </>
   )
     }
