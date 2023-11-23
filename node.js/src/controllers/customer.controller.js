@@ -1,7 +1,10 @@
 var list = [ "Ron Veasna","Rath Vicheka","Messi"]
 const db = require("../config/db.config")
+
 const getlist = (req,res)=>{
-    db.query("SELECT * FROM customer", (err,result)=>{
+    // ASC = a-z, DESC = z-a,
+    var sqlSelect = "SELECT * FROM customer ORDER BY firstname ASC"
+    db.query(sqlSelect, (err,result)=>{
         res.json({
             list_customer : result
         })

@@ -49,7 +49,6 @@ const Customer = () => {
       setTimeout(() => {
         setLoading(false) // fast sever jeg ot see loading  
       }, 300);
-      message.success("Connecting Veasna Server")
       console.log(res)
     }).catch(err=>{
       console.log(err)
@@ -64,6 +63,7 @@ const Customer = () => {
   useEffect(() => {
 
     getlist();
+  
 
   }, [])
   const onConfirmDelete = (id) => {
@@ -101,6 +101,9 @@ const Customer = () => {
     // axios({
     //   url : "http://localhost:8080/api/customer/create",
     //   method : "post",
+    //   headers: {
+    //      Content-Type: application/json
+    //      }
     //   data :{
     //     "firstname":firstname,
     //     "lastname":lastname,

@@ -10,6 +10,7 @@ export const request = (method="",url="",data={}) => {
         data : data,
         // headers: {'Content-type': 'multipart/form-data'},
     }).then(res=>{
+        
         return res
     }).catch(err=>{
         if(err.code == "ERR_NETWORK"){
