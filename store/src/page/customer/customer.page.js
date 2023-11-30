@@ -27,11 +27,14 @@ import {
   FilterFilled} from "@ant-design/icons"
 import { useState, useEffect } from 'react';
 import { message, Table } from 'antd/lib';
+import { Config } from '../../util/service';
 const url = 'https://static.animecorner.me/2022/07/anya-diary.png';
 const url2 = 'https://fictionhorizon.com/wp-content/uploads/2022/07/monkey.png';
 const { Option } = Select;
 const Customer = () => {
   const [List, setList] = useState([])
+  const [totalRecord, setTotalRecord] = useState(0)
+  const [defaultPageSize, setdefaultPageSize] = useState(0)
   const [visibleModal, setVisibleModal] = useState(false)
   const [firstname, setFirstname] = useState("")
   const [lastname, setLastname] = useState("")
@@ -42,13 +45,19 @@ const Customer = () => {
   const [is_active, setActive] = useState(1)
   const [cus_id, setCusid] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const [textSearch, setTextSearch] = useState("")
+  const [page, setPage] = useState(1)
+
   const getlist = () =>{
     setLoading(true)
-    request("get","customer/getlist").then(res=>{
+    request("get","customer/getlist?page="+page).then(res=>{
       setList(res.data.list_customer)
       setTimeout(() => {
         setLoading(false) // fast sever jeg ot see loading  
       }, 300);
+      setTotalRecord(res.data.total_record)
+      setdefaultPageSize(res.data.pagination)
       console.log(res)
     }).catch(err=>{
       console.log(err)
@@ -65,7 +74,7 @@ const Customer = () => {
     getlist();
   
 
-  }, [])
+  }, [page])
   const onConfirmDelete = (id) => {
     // axios({
     //   url : "http://localhost:8080/api/customer/delete/"+id,
@@ -198,10 +207,14 @@ return (
   <div>
   <Space>
   <h1>Customer Page <span style={{"color":"blue"}} >Management</span></h1>
-  <Input.Search className='search' placeholder='Search'/>
+  <Input.Search className='search' placeholder='Search'
+    onChange={(value)=>{
+      setTextSearch(value)
+    }}
+  />
   <DatePicker className='date'  />
   <DatePicker className='date'  />
-  <Button type='primary' className='date'><FilterFilled/>Filter</Button>
+  <Button type='primary' onClick={()=>getlist()} className='date'><FilterFilled/>Filter</Button>
   </Space>
   </div>
   <Button onClick={handleOpenModal} style={{"background-color":"rgb(14, 216, 14)","color":"white","border":" 1px solid black"}}>
@@ -231,6 +244,7 @@ return (
       icon={<RobotOutlined/>}
     />
   </Space>
+  <h1>{page}</h1>
   <Table
     columns={[
       {
@@ -302,6 +316,15 @@ return (
       },
     ]}
     dataSource={List}
+    pagination={{
+      total : totalRecord, //total record
+      defaultPageSize: Config.pagination, //total page
+      defaultCurrent : 1,
+      onChange : (page) =>{
+        setPage(page)
+        //getlist() page in use effect
+      }
+    }}
   />
   <Modal
     open={visibleModal}

@@ -1,8 +1,8 @@
 import dayjs from "dayjs"
 
 export const Config = {
-    pagination : 10,
-    imagePath : "http://localhost/image_path/ecm_backend_g1/"
+    pagination : 5,
+    // imagePath : "http://localhost/image_path/ecm_backend_g1/"
 }
 
 export const isEmptyOrNull = (value) => {

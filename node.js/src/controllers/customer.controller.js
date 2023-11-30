@@ -1,12 +1,34 @@
 var list = [ "Ron Veasna","Rath Vicheka","Messi"]
-const db = require("../config/db.config")
+const db = require("../config/db.config");
+const { Config } = require("../util/service");
 
 const getlist = (req,res)=>{
     // ASC = a-z, DESC = z-a,
-    var sqlSelect = "SELECT * FROM customer ORDER BY firstname ASC"
+    //column ?, order (ASC,DESC) ?
+    //var sqlSelect = "SELECT * FROM customer ORDER BY firstname ASC"
+    var query = req.query;
+    var text_search = query.text_search;
+    var page = query.page;
+    var sqlSelect = "SELECT * FROM customer "
+    if(text_search != null){
+      sqlSelect += " WHERE firstname LIKE '%"+text_search+"%' "   
+    }
+   //sqlSelect += "ORDER BY firstname ASC" //tor string
+   //page = page;
+    //var limit =7;
+    var offset = (page - 1) * Config.pagination;
+    sqlSelect += " LIMIT "+offset+","+Config.pagination+" "
+//    page 1 => (1-1) * 5 => 0
+//    page 2 => (2-1) * 5 => 5
     db.query(sqlSelect, (err,result)=>{
-        res.json({
-            list_customer : result
+        db.query("SELECT count(cus_id) as total FROM customer",(er1,row1)=>{
+          var total_record = row1[0].total
+            res.json({
+            total_record: total_record,
+            pagination : Config.pagination,
+          //  total_page: Math.ceil(total_record/Config.pagination),
+            list_customer : result  
+           })
         })
     })
 }
