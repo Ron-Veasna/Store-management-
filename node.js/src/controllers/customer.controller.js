@@ -1,7 +1,7 @@
 var list = [ "Ron Veasna","Rath Vicheka","Messi"]
 const db = require("../config/db.config");
 const { Config } = require("../util/service");
-
+const bcrypt = require("bcrypt")
 const getlist = (req,res)=>{
     // ASC = a-z, DESC = z-a,
     //column ?, order (ASC,DESC) ?
@@ -33,6 +33,19 @@ const getlist = (req,res)=>{
     })
 }
 const create = (req,res)=>{
+    // get parameter from client site
+    // var password = "1234"
+    // var bcrypt_password = bcrypt.hashSync(password,10) // store in db
+    // // compare password
+    // var paramPassword = "1234"
+    // var isCorrect = bcrypt.compareSync(paramPassword,bcrypt_password)
+    // res.json({
+    //     password : password,
+    //     bcrypt_password : bcrypt_password,
+    //     isCorrect : isCorrect
+    // })
+    // return
+
     var body = req.body
     if(body.firstname == null || body.firstname == ""){
         res.json({
@@ -48,6 +61,16 @@ const create = (req,res)=>{
         })
         return false
     }
+    // username = email or phone
+    var username = body.username
+    if(body.username == null || body.username == ""){
+        res.json({
+            error: true,
+            message: "Please fill in username!"
+        })
+        return false
+    }
+
     var sqlinsert = "INSERT INTO customer(firstname, lastname, gender, dob, phone, email, is_active) VALUES (?,?,?,?,?,?,?)"
     db.query(sqlinsert,[body.firstname,body.lastname,body.gender,body.dob,body.phone,body.email,body.is_active],(error,result)=>{
         if(error){
