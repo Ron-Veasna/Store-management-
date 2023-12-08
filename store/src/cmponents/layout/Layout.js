@@ -24,7 +24,7 @@ const Layoutone = (props) => {
 	} = theme.useToken();
 	const menu = [
 		{
-			key: '/',
+			path: '/dashboard',
 			icon: <BookOutlined />,
 			label: 'Dashboard',
 		},

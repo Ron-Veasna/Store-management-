@@ -2,6 +2,34 @@ var list = [ "Ron Veasna","Rath Vicheka","Messi"]
 const db = require("../config/db.config");
 const { Config } = require("../util/service");
 const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const secret_access_token = "EUYG3725623#FJDS"
+var dataCards = [
+    {
+        id:11,
+        name:"Coka",
+        color:"red",
+        cus_id:1
+    },
+    {
+        id:12,
+        name:"Pepsi",
+        color:"blue",
+        cus_id:2
+    },
+    {
+        id:13,
+        name:"Fanta",
+        color:"Orange",
+        cus_id:3
+    },
+    {
+        id:17,
+        name:"Spy",
+        color:"Black",
+        cus_id:60
+    }
+]
 const getlist = (req,res)=>{
     // ASC = a-z, DESC = z-a,
     //column ?, order (ASC,DESC) ?
@@ -32,6 +60,42 @@ const getlist = (req,res)=>{
         })
     })
 }
+
+const getCart = (req,res)=>{
+    var authorization = req.headers.authorization;
+    var token_from_client = null
+    if(authorization != null && authorization != ""){
+        token_from_client = authorization.split(" ")
+        token_from_client = token_from_client[1]
+    }
+   if(token_from_client == null){
+    res.json({
+        error : true,
+        message : "You don't have permission access this method!"
+    })
+   }else{
+    jwt.verify(token_from_client,secret_access_token,(err,data)=>{
+        if(err){
+            res.json({
+                error : true,
+                message : "Invalid Token!"
+            })
+        }else{
+            var cus_id = data.profile.cus_id
+            // dataCart = []
+            //"SELECT * FROM carts where customer = cus_id"
+            var cart = dataCards.filter((item,index)=>item.cus_id == cus_id)
+            res.json({
+                cart : cart,
+                // cus_id : cus_id
+                // data : data.profile.cus_id,
+                // token : token_from_client
+            }) 
+        }
+    })
+   }
+}
+
 const create = (req,res)=>{
     // get parameter from client site
     // var password = "1234"
@@ -62,30 +126,112 @@ const create = (req,res)=>{
         return false
     }
     // username = email or phone
-    var username = body.username
     if(body.username == null || body.username == ""){
         res.json({
             error: true,
             message: "Please fill in username!"
         })
         return false
+    }else{
+        //username is email or phone
+        //ifEmail username store in column eamil
+        //ifphone username store in column phone
     }
 
-    var sqlinsert = "INSERT INTO customer(firstname, lastname, gender, dob, phone, email, is_active) VALUES (?,?,?,?,?,?,?)"
-    db.query(sqlinsert,[body.firstname,body.lastname,body.gender,body.dob,body.phone,body.email,body.is_active],(error,result)=>{
-        if(error){
+    if(body.password == null || body.password == ""){
+        res.json({
+            error: true,
+            message: "Please fill in Password!"
+        })
+        return false
+    }
+// check when inset customer
+    db.query("SELECT * FROM customer WHERE email = ?",[body.username],(err,result)=>{
+        if(err){
             res.json({
                 error: true,
-                message: error
+                message: err
             })
         }else{
-            res.json({
-                message:"customer inserted!",
-                data: result
-            })
+            if(result.length == 0){
+                //can create new Account
+                var password = bcrypt.hashSync(body.password,10)
+                var sqlinsert = "INSERT INTO customer(firstname, lastname, gender, dob, email, password, is_active) VALUES (?,?,?,?,?,?,?)"
+                db.query(sqlinsert,[body.firstname, body.lastname, body.gender, body.dob, body.username, password, body.is_active],(error,result)=>{
+                    if(error){
+                        res.json({
+                            error: true,
+                            message: error
+                        })
+                    }else{
+                        res.json({
+                            message:"Customer inserted!",
+                            data: result
+                        })
+                    }
+                })
+            }else{
+                //Can not create new Account
+                res.json({
+                    error: true,
+                    message: "Account Already exist!"
+                })
+            }
         }
     })
 }
+    const login = (req,res) =>{
+        // var username = req.body.username;
+        // var password = req.body.password;
+        var{username,password} = req.body     //this one laor jeang tea doch knea
+        if(username == null || username == ""){
+            res.json({
+                error : true,
+                message : "Please fill in username!",
+            })
+            return
+        }else if(password == null || password == ""){
+            res.json({
+                error : true,
+                message : "Please fill in password!",
+            })
+            return
+        }
+
+        db.query("SELECT * FROM customer WHERE email = ?",[username],(err,result)=>{
+            if(err){
+                res.json({
+                    error : true,
+                    message : err
+                })
+            }else{
+                if(result.length == 0){
+                    res.json({
+                        error :true,
+                        message : "User Dode not exist. Please Register!"
+                    })
+                }else{
+                    var data = result[0]
+                    var passwordInDb = data.password;
+                    var isCorrectPassword = bcrypt.compareSync(password,passwordInDb) // true or false
+                    if(isCorrectPassword){
+                        delete data.password;
+                        var token = jwt.sign({profile:data},secret_access_token)
+                        res.json({
+                            message : "Login Success!",
+                            profile : data,
+                            token : token 
+                        })
+                    }else{
+                        res.json({
+                            message : "Incorrect Password!"
+                        })
+                    }
+                }
+            }
+        })
+
+    }
 
 const update = (req,res)=>{
     var body = req.body
@@ -126,7 +272,9 @@ const remove = (req,res)=>{
                 error: true,
                 message: error
             })
-        }else if(result.affectedRows !=0){
+        }else{
+
+        if(result.affectedRows !=0){
             res.json({
                 message:"customer deleted!",
                 data: result
@@ -137,12 +285,16 @@ const remove = (req,res)=>{
                 data: result
             })
         }
+    }
     })
-}
+ }
 
-module.exports={
+
+module.exports = {
     getlist,
     update,
     create,
-    remove
+    remove,
+    login,
+    getCart
 }
